@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Capital One SkyScanner Challenge</title>
+  <h1>SkyScanner WebApp</h1>
+
+  <!--- CSS Style Sheet-->
+  <style>
+    h1 {
+      font: bold 50px Verdana, Arial, sans-serif;
+      color: white;
+      padding: 5px 2px 2px 20px;
+      width: 600px;
+      position: relative;
+      background: rgba(57, 160, 200, 0.2);
+    }
+
+    h2 {
+      font: bold 30px Verdana, Arial, sans-serif;
+      color: white;
+      padding: 5px 2px 2px 20px;
+      width: 500px;
+      position: relative;
+      background: rgba(57, 160, 200, 0.2);
+    }
+
+    h3 {
+
+      font: normal 20px Verdana, Arial, sans-serif;
+      color: rgb(25, 0, 255);
+      padding: 5px 2px 2px 20px;
+      width: fit-content;
+      position: relative;
+
+    }
+
+    .instructions {
+      font: bold italic 15px Verdana, Arial, sans-serif;
+      color: white;
+      padding: 0px 0px 5px 5px;
+      width: fit-content;
+      position: relative;
+      background: rgba(0, 180, 251, 0.2);
+    }
+
+    table,
+    th {
+      font: bold 20px Verdana, Arial, sans-serif;
+      color: white;
+      border: 3px solid black;
+      background: rgba(57, 160, 200, .1);
+    }
+
+    td {
+      font: italic 20px Verdana, Arial, sans-serif;
+      color: rgb(43, 6, 255);
+      border: 3px solid black;
+      width: auto;
+      background: rgba(57, 160, 200, .30);
+    }
+
+    input {
+      font: bold 15px Verdana, Arial, sans-serif;
+      color: white;
+      padding: 0px;
+      width: fit-content;
+      position: relative;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    label {
+      font: bold 15px Verdana, Arial, sans-serif;
+      color: rgb(38, 0, 255);
+      padding: 0px;
+      width: fit-content;
+      position: relative;
+      background: rgba(255, 255, 255, 0);
+
+    }
+
+    button {
+      font: normal 14px Verdana, Arial, sans-serif;
+      color: rgb(0, 0, 0);
+      padding: 0px;
+      width: fit-content;
+      position: relative;
+    }
+
+    .big_button {
+
+      font: normal 30px Verdana, Arial, sans-serif;
+      color: rgb(255, 0, 0);
+      padding: 5px;
+      margin-left: 15mm;
+      width: fit-content;
+      position: relative;
+      background: rgba(255, 255, 255, 0);
+    }
+
+    body {
+      padding: 0;
+      margin: 0;
+      background-image: url("https://g.foolcdn.com/editorial/images/606153/airplane-in-the-clouds-getty.jpg");
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    canvas {
+      vertical-align: top;
+    }
+  </style>
+
+  <!--- Title and Instructions-->
+  <div>
+    <h2 class="content">How to Use This Web App</h2>
+    <ol>
+      <li class="instructions">First, search for possible departure and destination locations.</li>
+      <li class="instructions">Then, use the PLACE IDs for that location to search for flight options.</li>
+      <li class="instructions">So, for example, if you wanted to depart from New York, you would search for New York in
+        the departure locations, and then choose a Place ID corresponding to a specfic place in New York (ROC-sky is the
+        Place ID for Rochester, NY) and then enter that into the "From" under Flight Search. Same thing for "To" and
+        destination places.</li>
+      <li class="instructions">To input the dates, please use the following format: “yyyy-mm-dd”, “yyyy-mm” or
+        “anytime”.</li>
+      <li class="instructions">If you do not know the currency code for the currency of your preference, please click
+        the "Find Currency Code" button and find the appropriate currency code from the list.</li>
+      <li class="instructions">If nothing shows up after your search, it means no results were found!</li>
+      <li class="instructions">The quotes' prices are listed in ascending order per destination.</li>
+      <li class="instructions">Enjoy!</li>
+    </ol>
+  </div>
+
+</head>
+
+<!--- Search for Departure Locations-->
+<body>
+  <div>
+    <h3 style="float: left;">Search for Departure Locations:</h3>
+    <input style="margin-top: 7.5mm;float: left;" type="text" id="from">
+    <button style="margin-top: 8mm;" id="submit" value="submit">Search Places</button>
+  </div>
+
+  <!--- Javascript for retrieving locations from the API-->
+  <script>
+
+    // Default Values
+    var currency = "USD"
+    var country = "US";
+    var locale = "en-US";
+
+    var query;
+
+    // Perfrom search when button is clicked
+    document.getElementById("submit").addEventListener("click", function () {
+
+       // Reset the list
+      document.getElementById("places").innerHTML = "";
+      query = document.getElementById("from").value;
+
+      // Create the URL for fetch
+      var url = "https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/autosuggest/v1.0/" +
+        country + "/" + currency + "/" + "locale" + "/?query=" + query;
+
+      fetch(url, {
+          "method": "GET",
+          "headers": {
+            "x-rapidapi-key": "4aa8a53d54mshca1e1c0e86aa0b9p1c0c4fjsnfcc2cf8191ec",
+            "x-rapidapi-host": "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com"
+          },
+
+        }) // Change response to JSON and add Place details to list
+        .then(response => response.json()).then(json =>
+          {
+            console.log(json)
+
+            let li = `<tr><th>Place Name</th>
+            <th>Place ID</th>
+            <th>Country</th><style=text-align:right></tr>`;
+
+            json.Places.forEach(Place => {
+              li += `<tr> 
+                <td style="width: 400px;">${Place.PlaceName}</td>  
+                <td style="color:white; width: 150px;text-align:center;">${Place.PlaceId} </td>  
+                <td style="text-align:center;">${Place.CountryId[0] + Place.CountryId[1]}</td>   
+              </tr>`;
+            })
+
+            document.getElementById("places").innerHTML = li;
+
+          }).catch(err => {
+          window.alert(err);
+          console.error(err);
+        });
+    });
+  </script>
+
+  <!--- Print the results of the Departure Locations search in a table-->
+  <div>
+    <h3 style="margin-left: 0; font: bold 20px Verdana, Arial, sans-serif; ">Possible Departure Places</h3>
+    <table id="places"></table>
+  </div>
+
+  <!--- Search for Destination Locations-->
+  <h3 style="float: left;">Search for Destination Locations:</h3>
+  <input style="margin-top: 7mm;float: left;" type="text" id="to">
+  <button style="margin-top: 8mm;" id="submit1" value="submit1">Search Places</button>
+
+  <!--- Javascript for retrieving locations from the API-->
+  <!--- SAME AS RETRIEVING DEPARTURE LOCATIONS-->
+  <script>
+    var currency = "GBP"
+    var country = "US";
+    var locale = "en-US";
+
+    var query;
+    document.getElementById("submit1").addEventListener("click", function () {
+
+      document.getElementById("places1").innerHTML = "";
+      query = document.getElementById("to").value;
+
+      var url = "https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/autosuggest/v1.0/" +
+        country + "/" + currency + "/" + "locale" + "/?query=" + query;
+
+      fetch(url, {
+          "method": "GET",
+          "headers": {
+            "x-rapidapi-key": "4aa8a53d54mshca1e1c0e86aa0b9p1c0c4fjsnfcc2cf8191ec",
+            "x-rapidapi-host": "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com"
+          },
+
+        })
+        .then(response => response.json()).then(json =>
+
+          {
+            console.log(json)
+
+            let li = `<tr><th>Place Name</th>
+                  <th>Place ID</th>
+                  <th>Country</th></tr>`;
+
+            json.Places.forEach(Place => {
+              li += `<tr> 
+                      <td style="width: 400px;">${Place.PlaceName}</td>  
+                      <td style="color:white; width: 150px;text-align:center;">${Place.PlaceId} </td>  
+                      <td style="text-align:center;">${Place.CountryId[0] + Place.CountryId[1]}</td>   
+                    </tr>`;
+            })
+
+            document.getElementById("places1").innerHTML = li;
+
+          }).catch(err => {
+          window.alert(err);
+          console.error(err);
+        });
+
+    });
+  </script>
+
+    <div>
+      <!--- Print the results of the Destination Places Search search in a table-->
+      <h3 style="margin-left: 0; font: bold 20px Verdana, Arial, sans-serif; "> Possible Destination Places</h3>
+      <div>
+        <table id="places1"></table>
+      </div>
+    </div>
+
+<!--- Flight Search inputs-->
+  <h3 style="padding-bottom:0px; font: bold 20px Verdana, Arial, sans-serif; ">Flight Search</h3>
+  <div style="padding:5px 2px 2px 20px;" ; class="search">
+    <label for="From">From:</label>
+    <input id="origin" type="text" />
+    <label for="To">To:</label>
+    <input id="destination" type="text" />
+    <label style="margin-left: 10mm" ; for="outbound">Outbound Date:</label>
+    <input id="outbound" type="text" />
+    <label style="margin-left: 10mm" ; for="Currency">Currency:</label>
+    <input id="currency" type="text" />
+
+    <!--- Currency Code finder-->
+    <button name="Find Currency Code" value="ccode" id="ccode">Find Currency Code</button>
+    <script>
+      document.getElementById("ccode").addEventListener("click", function () {
+        window.open("https://www.htmlquick.com/reference/currency-codes.html");
+      })
+    </script>
+
+    <button class="big_button" id="search" value="search">Search Flights</button>
+  </div>
+
+  <label style="margin-left: 147mm; margin-top: 10cm" ; for="inbound">Inbound Date:</label>
+  <input id="inbound" type="text" />
+
+  <!--- Javascript for retrieving flight options from the API-->
+  <script>
+    // Declare and initialize variables
+
+    var originid;
+    var destinationid;
+    var currency = "USD"
+    var country = "US";
+    var locale = "en-US";
+    var origin;
+    var destination;
+    var outbound = "2021-03";
+    var inbound = "";
+
+    // Perform search when button is clicked
+    document.getElementById("search").addEventListener("click", function () {
+
+      document.getElementById("depart").innerHTML = "";
+
+      // Collect all the user input and create the url request for fetch
+      origin = document.getElementById("origin").value;
+      destination = document.getElementById("destination").value;
+      outbound = document.getElementById("outbound").value;
+      inbound = document.getElementById("inbound").value;
+      currency = document.getElementById("currency").value;
+
+      var url = "https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/browseroutes/v1.0/" +
+        country + "/" + currency + "/" + locale + "/" + origin + "/" + destination + "/" + outbound +
+        "?inboundpartialdate=" + inbound;
+
+      // Fetch the data and use JSON to parse it, adding appropriate data to each list
+      fetch(url, {
+          "method": "GET",
+          "headers": {
+            "x-rapidapi-key": "4aa8a53d54mshca1e1c0e86aa0b9p1c0c4fjsnfcc2cf8191ec",
+            "x-rapidapi-host": "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com"
+          }
+        })
+        .then(response => response.json()).then(json =>
+
+          {
+            console.log(json)
+
+            // Lists for Departure, Arrival, and Quotes Information
+            let li = ` <caption style="background: rgba(255, 255, 255, 0.5);color:black;">Departure</caption><tr><th>Airport</th>
+                        <th>City</th></tr>`;
+
+            let li1 = `<caption style="background: rgba(255, 255, 255, 0.5);color:black;">Arrival</caption><tr><th>Airport</th>
+                          <th>City</th></tr>`;
+
+            let li2 = ` <caption style="background: rgba(255, 255, 255, 0.5);color:black;">Quotes</caption><tr><th>Going To</th><th>Departure Date</th>
+                            <th>Price</th><th>Direct Flight?</th><th>Carrier</th></tr>`;
+
+            var i = 0; // Index for keeping track of QuoteIds in the Array that match with specific routes
+            json.Routes.forEach(Routes => {
+
+              var destination;
+              // Get the PlaceName specified in the Route by the Routes.OriginId and Routes.DestinationId
+              json.Places.forEach(Place => {
+                if (Place.PlaceId == Routes.OriginId) {
+                  li += `<tr> 
+                                    <td style="width: fit-content;">${Place.Name} </td>  
+                                    <td style="width: fit-content;">${Place.CityName} </td>   
+                                  </tr>`;
+                }
+                if (Place.PlaceId == Routes.DestinationId) {
+                  li1 += `<tr> 
+                                    <td style="width: fit-content;">${Place.Name} </td>  
+                                    <td style="width: fit-content;">${Place.CityName} </td>   
+                                  </tr>`;
+                  destination = Place.Name;
+                }
+              })
+              originid = Routes.OriginId;
+              destinationid = Routes.DestinationId;
+
+              var quoteids = [];
+              Routes.QuoteIds.forEach(QuoteId => {
+                quoteids[i] = QuoteId;
+                i++;
+              })
+
+              // Parse the quotes and print the relevant information
+              json.Quotes.forEach(Quote => {
+
+                var qid = Quote.QuoteId;
+                var symbol;
+                var placement;
+                var ddigits = 2;
+                var thousands;
+                var decimal;
+                var space;
+
+                // Currency format
+                json.Currencies.forEach(Currency => {
+
+                  symbol = Currency.Symbol;
+                  placement = Currency.SymbolOnLeft;
+                  ddigts = Currency.DecimalDigits;
+                  thousands = Currency.ThousandsSeparator;
+                  decimal = Currency.DecimalSeparator;
+                  space = Currency.SpaceBetweenAmountAndSymbol;
+                })
+                
+                // Format according to the decimal digits, thousands separator, and decimal separator
+                // Thousands seaparator uses a regex found online: https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+                var price = parseFloat(Quote.MinPrice).toFixed(ddigits).replace(/\d(?=(\d{3})+\.)/g, '$&' +
+                  thousands).replace('.0', decimal + '0');
+                
+                // Check symbol placement and concatenate it accordingly
+                if (placement == true) {
+                  if (space == true) {
+                    price = symbol + " " + price;
+                  } else {
+                    price = symbol + price;
+                  }
+                } else {
+                  if (space == true) {
+                    price = price + " " + symbol;
+                  } else {
+                    price = price + symbol;
+                  }
+                }
+
+                // Format direct parameter to English
+                var direct = Quote.Direct;
+                if (direct == true) {
+                  direct = "Yes";
+                } else {
+                  direct = "No";
+                }
+
+                // Add data retrieved from Quotes to lists
+                // Match CarrierId with CarrierName
+                var x = 0;
+                json.Carriers.forEach(Carrier => {
+                  if (quoteids[x] = qid && Carrier.CarrierId == Quote.OutboundLeg.CarrierIds) {
+                    li2 += `<tr> 
+                                      <td>${destination}</td>
+                                      <td style="width: max-content; text-align:center;">${Quote.OutboundLeg.DepartureDate.substring(0,Quote.OutboundLeg.DepartureDate.indexOf('T'))} </td>
+                                      <td style="font-weight:normal; color:white; text-align:center">${price} </td>
+                                      <td style="width: fit-content; text-align:center;">${direct} </td>  
+                                      <td style="width: fit-content; text-align:center;">${Carrier.Name} </td>   
+                                    </tr>`;
+                    x++;
+                  }
+                })
+
+              });
+
+
+            })
+
+            // Set the lists with all the data
+            document.getElementById("depart").innerHTML = li;
+            document.getElementById("arrive").innerHTML = li1;
+            document.getElementById("quotes").innerHTML = li2;
+
+          }).catch(err => {
+          window.alert(err);
+          console.error(err);
+        });
+
+    });
+  </script>
+
+  <div>
+    <!--- Print the results of the Flight Search search in a table-->
+    <h2 style="width:150px;">Results</h2>
+    <div>
+      <table style="float: left;" id="depart"></table>
+      <table style="float: left;" id="arrive"></table>
+      <table style="float: left;" id="quotes"></table>
+    </div>
+  </div>
+
+</body>
+
+</html>
